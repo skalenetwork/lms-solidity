@@ -16,7 +16,9 @@ them, and what is only tested. Read it before relying on the word "proven".
 - **Hash model.** SHA-256 is an *uninterpreted function*: the proofs assume nothing about it,
   not even collision resistance. A lemma therefore shows that the verifier hashes exactly the
   byte strings the RFC hashes, in the same order, and combines the results the same way.
-- **Run.** `halmos --match-contract LMSEquivalence --loop 300 --solver-timeout-assertion 0`.
+- **Run.** `halmos --match-contract LMSEquivalence --loop 300 --solver-timeout-assertion 0`,
+  on a clean build (`forge clean` first: artifacts from `forge test` lack the AST Halmos
+  needs). The full run takes about 12 minutes, most of it the two w = 1 checksum lemmas.
   `scripts/check_proof_run.py` fails the run if any lemma did not pass, if a lemma explored no
   path, if the loop bound does not exceed p = 265 (the longest loop), or if this file does not
   state the pinned solc version.
@@ -55,6 +57,22 @@ Likewise, `climb`'s loop body does not depend on h, only how often it runs. Lemm
 every left/right pattern over five levels. A height-10 instance (1,024 paths) was attempted and
 abandoned as too slow. Heights 10–25 are covered by that structural argument and by the test
 vectors, which include h = 10 from `hsslms` and synthetic trees at h = 15, 20 and 25.
+
+## The proofs have teeth
+
+A proof that passes no matter what the code does proves nothing. `scripts/check_teeth.sh`
+plants seven bugs, one at a time, in a scratch copy of `src/LMS.sol`, and requires the lemma
+that covers each one to fail with a counterexample. Every one is caught:
+
+| Planted bug | Caught by |
+|---|---|
+| An odd node puts its own hash on the left instead of the right | `check_climb_H5_M32` |
+| A chain step hashes one byte too few | `check_chainStep_N32` |
+| Digits are read from the wrong end of the byte | `check_digits_N32_W4` |
+| The checksum sums the digits instead of their complements | `check_checksum_N32_W8` |
+| SP 800-208's n = m check is dropped | `check_parse` |
+| Leaf q = 2^h is accepted | `check_parse` |
+| An embedded LMS signature is measured 4 bytes too long | `check_hssLengths` |
 
 ## Argued by hand, on top of the lemmas
 
