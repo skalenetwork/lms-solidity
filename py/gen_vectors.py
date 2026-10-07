@@ -10,8 +10,8 @@ Three sources, every vector checked by two independent implementations before it
                heights 5 and 10, and HSS hierarchies of 1–3 levels;
   - synthetic: heights 15, 20 and 25, too large to build, as a real LM-OTS leaf with a random
                authentication path and the root it implies (lms_ref.synthetic_lms).
-Each vector must verify under lms_ref.py (this repository's transcription of RFC 8554) and,
-where hsslms can check it, under hsslms; the generator aborts otherwise.
+Each vector must verify under lms_ref.py (this repository's transcription of RFC 8554) and
+under hsslms; the generator aborts otherwise.
 """
 import json
 import os
@@ -90,7 +90,7 @@ def main(rfc_txt):
             q = rng.choice([0, 2 ** h - 1, rng.randrange(2 ** h)])
             msg = rng.randbytes(32)
             pub, sig = lms_ref.synthetic_lms(lt, ot, q, msg, rng)
-            add_lms(f"synthetic-lms{lt}-ots{ot}-q{q}", pub, msg, sig, hsslms_too=False)
+            add_lms(f"synthetic-lms{lt}-ots{ot}-q{q}", pub, msg, sig)
 
     out = {
         "lms_pub": lms_pub, "lms_msg": lms_msg, "lms_sig": lms_sig, "lms_label": lms_label,

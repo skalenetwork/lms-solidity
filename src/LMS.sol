@@ -199,20 +199,35 @@ library LMS {
     {
         uint256 last = (1 << w) - 1;
         bytes32 mask = _mask(n);
-        assembly ("memory-safe") {
-            mstore(buf, I)
-            // u32str(q) || u16str(i), then u8str(j) and tmp are written per step.
-            mstore(add(buf, 16), or(shl(224, q), shl(208, i)))
-        }
+        chainPrefix(buf, I, q, i);
         for (uint256 j = a; j < last; ++j) {
-            assembly ("memory-safe") {
-                mstore8(add(buf, 22), j)
-                mstore(add(buf, 23), tmp)
-                if iszero(staticcall(gas(), 2, buf, add(23, n), 0x00, 32)) { revert(0, 0) }
-                tmp := and(mload(0x00), mask)
-            }
+            tmp = chainStep(buf, j, tmp, n, mask);
         }
         return tmp;
+    }
+
+    /// Writes I || u32str(q) || u16str(i), the part of a chain step's preimage that does not
+    /// change from step to step, at `buf`.
+    function chainPrefix(uint256 buf, bytes16 I, uint256 q, uint256 i) internal pure {
+        assembly ("memory-safe") {
+            mstore(buf, I)
+            mstore(add(buf, 16), or(shl(224, q), shl(208, i)))
+        }
+    }
+
+    /// One chain step, after `chainPrefix`: H(I || u32str(q) || u16str(i) || u8str(j) || tmp),
+    /// truncated to n bytes by `mask` (the top n bytes of a word).
+    function chainStep(uint256 buf, uint256 j, bytes32 tmp, uint256 n, bytes32 mask)
+        internal
+        view
+        returns (bytes32 out)
+    {
+        assembly ("memory-safe") {
+            mstore8(add(buf, 22), j)
+            mstore(add(buf, 23), tmp)
+            if iszero(staticcall(gas(), 2, buf, add(23, n), 0x00, 32)) { revert(0, 0) }
+            out := and(mload(0x00), mask)
+        }
     }
 
     /// Algorithm 4b, steps 1–4: the candidate LM-OTS public key Kc. `ots` points at the
