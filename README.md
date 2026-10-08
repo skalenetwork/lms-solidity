@@ -24,6 +24,12 @@ and `hsslms`. Malformed input of any kind makes verification return `false`, nev
 > signer has used. A contract that grants authority on an LMS signature must record each leaf
 > it accepts (the bottom tree's `q`, under that tree's public key) and refuse it the second
 > time.
+>
+> For the same reason this library does **not** implement
+> [`IPQVerifier`](https://github.com/skalenetwork/pq-verifier-interface), the interface shared by
+> the stateless verifiers (ML-DSA, SLH-DSA, FN-DSA). The interface's bare yes/no answer would let a
+> caller treat an LMS signature like a stateless one and accept a reused leaf. LMS keeps its
+> own API, whose callers must do the bookkeeping above.
 
 ## Parameter sets
 
