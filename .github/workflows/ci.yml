@@ -29,6 +29,8 @@ jobs:
 
   prove:
     runs-on: ubuntu-latest
+    # A hosted runner has 16 GB; a job that exhausts it hangs until the runner is lost.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +50,12 @@ jobs:
           grep -q 'BitVecSorts\[arg_size \* 8\], BitVecSort256' "$SEVM"
       - name: Prove src/LMS.sol equivalent to RFC 8554, step by step
         # --loop must exceed p = 265 (LMOTS_SHA256_N32_W1), the longest loop the lemmas unroll.
-        run: halmos --match-contract LMSEquivalence --loop 300 --solver-timeout-assertion 0 2>&1 | tee halmos.log
+        # The two w = 1 checksum lemmas need more memory than a hosted runner has; they are
+        # run locally (PROOF.md). The checker requires exactly those two to be absent.
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: >-
+          halmos --match-contract LMSEquivalence --match-test '^check_(?!checksum_N(24|32)_W1)'
+          --loop 300 --solver-timeout-assertion 0 2>&1 | tee halmos.log
       - name: Reject a truncated or vacuous proof run
-        run: python3 scripts/check_proof_run.py 300 halmos.log
+        run: python3 scripts/check_proof_run.py --ci 300 halmos.log

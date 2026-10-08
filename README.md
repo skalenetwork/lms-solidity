@@ -84,6 +84,9 @@ pip install hsslms==0.1.3 && python3 scripts/check_vectors.py
 halmos --match-contract LMSEquivalence --loop 300 --solver-timeout-assertion 0
 ```
 
+The full proof run needs more than 16 GB of memory, so CI proves 28 of the 30 lemmas and the
+two w = 1 checksum lemmas are run locally ([PROOF.md](PROOF.md)).
+
 ## License
 
 MIT, see [LICENSE](LICENSE).

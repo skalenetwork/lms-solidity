@@ -22,6 +22,14 @@ them, and what is only tested. Read it before relying on the word "proven".
   `scripts/check_proof_run.py` fails the run if any lemma did not pass, if a lemma explored no
   path, if the loop bound does not exceed p = 265 (the longest loop), or if this file does not
   state the pinned solc version.
+- **What CI runs.** CI proves 28 of the 30 lemmas on every push (about 95 s and an 8 GB
+  peak on a workstation). The other two, `check_checksum_N24_W1` and `check_checksum_N32_W1`,
+  need more memory than a GitHub-hosted runner has (16 GB): run alone with one solver thread,
+  `check_checksum_N24_W1` takes Halmos's own process past 14 GB within a minute, and
+  `check_checksum_N32_W1` sums 256 digits to its 192. They are proven by the full run above,
+  on a machine with more memory, and must be re-run that way after any change to `checksum`,
+  `digitAt` or the pinned compiler settings. In CI, `check_proof_run.py --ci` requires exactly
+  those two to be absent and every other lemma to pass.
 
 ## Lemmas (`test/proof/LMSEquivalence.t.sol`)
 
